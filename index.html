@@ -1172,8 +1172,8 @@ function drawPeaksCanvas(env, peaks) {
   peaks.forEach(({idx,val})=>{ const x=idx*w/env.length, y=h-val/mx*(h-4)-2; ctx.fillStyle='#F5A623'; ctx.beginPath(); ctx.arc(x,y,2.5,0,Math.PI*2); ctx.fill(); });
 }
 function drawICIRow(seq) {
-  const row=document.getElementById('ici-row'); row.innerHTML='';
-  document.getElementById('ici-count').textContent = seq.length > 1 ? seq.length-1 : '—';
+  const row=document.getElementById('ici-row'); if(!row) return; row.innerHTML='';
+  const iciCount=document.getElementById('ici-count'); if(iciCount) iciCount.textContent = seq.length > 1 ? seq.length-1 : '—';
   if (!seq||seq.length<2){row.innerHTML='<span style="font-family:var(--mono);font-size:9px;color:var(--muted)">—</span>';return;}
   seq.forEach(()=>{ const d=document.createElement('div'); d.className='ici-dot'; d.style.background='var(--teal)'; row.appendChild(d); });
   for (let i=0;i<seq.length-1;i++) {
@@ -1202,15 +1202,15 @@ function updateFormantPanel(result) {
   const { vowelClass, formants } = result;
   const typeStr = vowelClass.type === '?' ? '—' : vowelClass.type + '-coda';
   const badge = document.getElementById('vowel-big-display');
+  if(!badge) return;
   badge.textContent = vowelClass.type === '?' ? '—' : vowelClass.type;
   badge.innerHTML += '<small>coda-vocal</small>';
   badge.className = 'vowel-big' + (vowelClass.type==='i'?' type-i':vowelClass.type==='a'?' type-a':'');
-  document.getElementById('f-f1').textContent = vowelClass.f1 ? Math.round(vowelClass.f1) + ' Hz' : '—';
-  document.getElementById('f-f2').textContent = vowelClass.f2 ? Math.round(vowelClass.f2) + ' Hz' : '(mono)';
-  document.getElementById('stat-vowel').textContent = typeStr;
+  const f1El=document.getElementById('f-f1'); if(f1El) f1El.textContent = vowelClass.f1 ? Math.round(vowelClass.f1) + ' Hz' : '—';
+  const f2El=document.getElementById('f-f2'); if(f2El) f2El.textContent = vowelClass.f2 ? Math.round(vowelClass.f2) + ' Hz' : '(mono)';
+  const svEl=document.getElementById('stat-vowel'); if(svEl) svEl.textContent = typeStr;
   const dBadge = document.getElementById('diph-badge');
-  dBadge.textContent = vowelClass.diphthong;
-  dBadge.className = 'diph-badge ' + (vowelClass.diphthong==='ascendente'?'rising':vowelClass.diphthong==='descendente'?'falling':'level');
+  if(dBadge){ dBadge.textContent = vowelClass.diphthong; dBadge.className = 'diph-badge ' + (vowelClass.diphthong==='ascendente'?'rising':vowelClass.diphthong==='descendente'?'falling':'level'); }
 }
 
 // ════════════════════════════════════════════════════════
@@ -1849,12 +1849,18 @@ async function analyseMp3() {
     if (formantResult) {
       const asmCanv = document.getElementById('canvas-assembly');
       const lpcCanv = document.getElementById('canvas-lpc');
-      asmCanv.width = document.getElementById('assembly-pane').clientWidth||250;
-      asmCanv.height = document.getElementById('assembly-pane').clientHeight||160;
-      lpcCanv.width = document.getElementById('lpc-pane').clientWidth||200;
-      lpcCanv.height = document.getElementById('lpc-pane').clientHeight||160;
-      FormantEngine.renderAssembly(asmCanv, formantResult.assembled, formantResult.winSamples, formantResult.sr);
-      FormantEngine.renderLPC(lpcCanv, formantResult.assembled, formantResult.sr, formantResult.formants, currentVowelType);
+      const asmPane = document.getElementById('assembly-pane');
+      const lpcPane = document.getElementById('lpc-pane');
+      if (asmCanv && asmPane) {
+        asmCanv.width = asmPane.clientWidth || 250;
+        asmCanv.height = asmPane.clientHeight || 160;
+        FormantEngine.renderAssembly(asmCanv, formantResult.assembled, formantResult.winSamples, formantResult.sr);
+      }
+      if (lpcCanv && lpcPane) {
+        lpcCanv.width = lpcPane.clientWidth || 200;
+        lpcCanv.height = lpcPane.clientHeight || 160;
+        FormantEngine.renderLPC(lpcCanv, formantResult.assembled, formantResult.sr, formantResult.formants, currentVowelType);
+      }
       updateFormantPanel(formantResult);
     }
 
@@ -1866,8 +1872,8 @@ async function analyseMp3() {
     const {peaks: pkB}      = SpectrogramEngine.extractPeaks(clickBufB);
     const peakSim = Math.min(100, Math.round((pkB.length / Math.max(pkA.length, 1)) * 100));
     drawSimilarityRing(Math.round(specSim * .6 + peakSim * .4));
-    document.getElementById('stat-peaks').textContent = pkA.length + ' / ' + pkB.length;
-    document.getElementById('stat-spec').textContent = specSim + '%';
+    const spEl=document.getElementById('stat-peaks'); if(spEl) spEl.textContent = pkA.length + ' / ' + pkB.length;
+    const ssEl=document.getElementById('stat-spec'); if(ssEl) ssEl.textContent = specSim + '%';
     drawPeaksCanvas(env, pkA);
     drawICIRow(seqA);
 
@@ -1886,9 +1892,11 @@ async function analyseMp3() {
     const sb = document.getElementById('source-badge');
     sb.className = 'source-badge real'; sb.textContent = '● GRABACIÓN REAL';
 
-    // Switch to formant view
-    document.querySelectorAll('.spec-vtab').forEach(b => b.classList.toggle('active', b.dataset.sview==='formants'));
-    document.querySelectorAll('.spec-view').forEach(v => v.classList.toggle('active', v.id==='sview-formants'));
+    // Switch to formant view (only if formant panel exists)
+    if (document.getElementById('sview-formants')) {
+      document.querySelectorAll('.spec-vtab').forEach(b => b.classList.toggle('active', b.dataset.sview==='formants'));
+      document.querySelectorAll('.spec-view').forEach(v => v.classList.toggle('active', v.id==='sview-formants'));
+    }
 
     // Play Señal A audio
     const ac = new (window.AudioContext || window.webkitAudioContext)();
