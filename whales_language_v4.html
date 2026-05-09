@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Whales Language — Laboratorio de Patrones</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@600;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#020A12; --s1:#081523; --s2:#0D1F30; --s3:#152840;
+  --border:#1B3A52; --teal:#06D4CC; --teal2:#06b6d4; --amber:#F5A623;
+  --purple:#9B5CF6; --green:#10D98A; --red:#EF4444;
+  --text:#A8C8E0; --muted:#4A7A9B;
+  --font:'Rajdhani',sans-serif; --mono:'Share Tech Mono',monospace;
+  --title:'Orbitron',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+
+/* NAV */
+nav{height:52px;background:var(--s1);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;flex-shrink:0;z-index:100;}
+.nav-brand{display:flex;align-items:center;gap:9px;margin-right:24px;flex-shrink:0;}
+.logo-ring{width:34px;height:34px;border:1.5px solid var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;}
+.logo-ring::before{content:'';width:14px;height:14px;border:1.5px solid var(--teal);border-radius:50%;opacity:.5;}
+.logo-ring::after{content:'';position:absolute;width:6px;height:6px;background:var(--teal);border-radius:50%;box-shadow:0 0 8px var(--teal);}
+.brand-text h1{font-family:var(--title);font-size:10px;letter-spacing:.18em;color:#fff;line-height:1.3;}
+.brand-text span{font-size:7.5px;color:var(--muted);letter-spacing:.1em;display:block;}
+.nav-tabs{display:flex;gap:1px;}
+.nav-tab{padding:6px 16px;font-family:var(--font);font-size:11.5px;font-weight:600;letter-spacing:.06em;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:.2s;text-transform:uppercase;user-select:none;}
+.nav-tab:hover{color:var(--text);}
+.nav-tab.active{color:var(--teal);border-bottom-color:var(--teal);}
+.nav-right{display:flex;align-items:center;gap:12px;margin-left:auto;}
+.user-badge{display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:4px 12px 4px 4px;}
+.user-av{width:26px;height:26px;background:linear-gradient(135deg,var(--teal2),#0891b2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#000;font-weight:700;}
+.user-name{font-size:12px;font-weight:700;color:#fff;}
+.user-lvl{font-size:10px;color:var(--amber);font-family:var(--mono);}
+
+/* MAIN */
+.main{flex:1;display:flex;overflow:hidden;}
+.page{display:none!important;}
+.page.active{display:flex!important;flex:1;overflow:hidden;min-width:0;}
+
+/* SIDEBAR */
+.sidebar{width:210px;background:var(--s1);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;}
+.sidebar-hdr{padding:10px 12px 8px;border-bottom:1px solid var(--border);}
+.sidebar-hdr h3{font-family:var(--title);font-size:8px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;}
+.coda-item{display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;border-left:2px solid transparent;transition:.15s;}
+.coda-item:hover{background:var(--s2);}
+.coda-item.active{background:var(--s2);border-left-color:var(--teal);}
+.ci-name{font-size:12px;font-weight:700;color:#fff;}
+.ci-clan{font-size:9.5px;color:var(--muted);font-family:var(--mono);}
+.ci-vowel{font-size:8px;font-family:var(--mono);padding:1px 5px;border-radius:3px;margin-top:1px;display:inline-block;}
+.ci-vowel.va{background:rgba(6,212,204,.1);color:var(--teal);border:1px solid rgba(6,212,204,.3);}
+.ci-vowel.vi{background:rgba(155,92,246,.1);color:var(--purple);border:1px solid rgba(155,92,246,.3);}
+.pint-footer{margin-top:auto;padding:10px 12px;border-top:1px solid var(--border);background:linear-gradient(180deg,transparent,#0A1E30);}
+.pint-footer p{font-size:9.5px;color:var(--muted);line-height:1.5;margin-bottom:8px;}
+.pint-epist{font-size:8.5px;color:#2d5570;font-style:italic;line-height:1.4;margin-top:4px;}
+.pint-stones{display:flex;gap:5px;}
+
+/* CENTER */
+.center{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+#viewer-wrap{flex:1;position:relative;min-height:0;background:radial-gradient(ellipse at 50% 40%,#081C35 0%,var(--bg) 100%);overflow:hidden;}
+#viewer-wrap canvas{display:block;width:100%!important;height:100%!important;}
+.depth-overlay{position:absolute;top:0;left:0;bottom:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:8px 0 8px 8px;}
+.depth-overlay span{font-family:var(--mono);font-size:8.5px;color:var(--muted);}
+.sofar-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:var(--mono);font-size:9.5px;color:var(--teal);opacity:.5;letter-spacing:.2em;pointer-events:none;}
+.vchips{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:4px;pointer-events:none;}
+.vchip{background:rgba(8,21,35,.9);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-family:var(--mono);font-size:9.5px;display:flex;gap:6px;align-items:center;}
+.vchip .cv{color:var(--teal);font-size:12px;}
+
+/* SPEC SECTION — tabbed */
+.spec-sec{height:240px;background:var(--s1);border-top:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.spec-hdr{display:flex;align-items:center;gap:8px;padding:5px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.spec-hdr h3{font-family:var(--title);font-size:8px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;}
+.slabel{font-size:9.5px;font-family:var(--mono);padding:2px 7px;border-radius:3px;}
+.slabel.em{background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.3);}
+.slabel.rx{background:rgba(6,212,204,.08);color:var(--teal);border:1px solid rgba(6,212,204,.2);}
+
+/* Spec view tabs */
+.spec-vtabs{display:flex;gap:3px;margin-left:auto;}
+.spec-vtab{background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:4px;font-size:9px;cursor:pointer;font-family:var(--mono);transition:.15s;letter-spacing:.04em;}
+.spec-vtab.active{border-color:var(--teal);color:var(--teal);}
+.spec-view{display:none;flex:1;min-height:0;}
+.spec-view.active{display:flex;}
+
+/* STFT panes */
+.spec-body{flex:1;display:flex;gap:1px;min-height:0;}
+.spec-pane{flex:1;position:relative;overflow:hidden;background:var(--bg);}
+.spec-pane canvas{position:absolute;top:0;left:0;width:100%;height:100%;}
+.spec-info{position:absolute;bottom:4px;right:6px;font-family:var(--mono);font-size:8.5px;color:var(--muted);pointer-events:none;}
+
+/* FORMANT VIEW */
+.formant-body{flex:1;display:flex;min-height:0;overflow:hidden;}
+.assembly-pane{flex:1.6;position:relative;background:var(--bg);overflow:hidden;border-right:1px solid var(--border);}
+.assembly-pane canvas{position:absolute;top:0;left:0;width:100%;height:100%;}
+.assembly-label{position:absolute;top:4px;left:6px;font-family:var(--mono);font-size:8.5px;color:var(--muted);}
+.assembly-label b{color:var(--teal);}
+.lpc-pane{flex:1;position:relative;background:var(--bg);overflow:hidden;border-right:1px solid var(--border);}
+.lpc-pane canvas{position:absolute;top:0;left:0;width:100%;height:100%;}
+.lpc-label{position:absolute;top:4px;left:6px;font-family:var(--mono);font-size:8.5px;color:var(--muted);}
+.formant-classify{flex:0 0 168px;padding:10px 11px;display:flex;flex-direction:column;gap:5px;overflow:hidden;}
+.vowel-big{font-family:var(--title);font-size:28px;font-weight:900;text-align:center;padding:7px;background:var(--s2);border-radius:6px;border:1px solid var(--border);line-height:1;color:var(--muted);}
+.vowel-big.type-a{border-color:var(--teal);color:var(--teal);text-shadow:0 0 16px rgba(6,212,204,.4);}
+.vowel-big.type-i{border-color:var(--purple);color:var(--purple);text-shadow:0 0 16px rgba(155,92,246,.4);}
+.vowel-big small{font-size:9px;display:block;color:var(--muted);font-family:var(--mono);margin-top:2px;}
+.fv-row{display:flex;justify-content:space-between;font-size:10px;}
+.fv-row .fk{color:var(--muted);}
+.fv-row .fv{font-family:var(--mono);color:var(--text);}
+.diph-badge{text-align:center;font-family:var(--mono);font-size:9px;padding:3px 6px;border-radius:3px;border:1px solid var(--border);color:var(--muted);}
+.diph-badge.rising{border-color:var(--green);color:var(--green);}
+.diph-badge.falling{border-color:var(--red);color:var(--red);}
+.diph-badge.level{border-color:var(--teal);color:var(--teal);}
+.epist-note{font-size:8.5px;color:#2d5570;line-height:1.45;padding:6px;background:rgba(27,58,82,.2);border-radius:4px;border-left:2px solid #1B3A52;margin-top:auto;}
+
+/* RIGHT PANEL */
+.rpanel{width:256px;background:var(--s1);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;}
+.rsec{padding:11px 13px;border-bottom:1px solid var(--border);}
+.rsec h4{font-family:var(--title);font-size:8px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:9px;}
+.sim-row{display:flex;align-items:center;gap:12px;}
+.sim-ring-wrap{position:relative;width:68px;height:68px;flex-shrink:0;}
+.sim-ring-wrap canvas{width:68px;height:68px;}
+.sim-val{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:var(--title);font-size:15px;font-weight:900;color:#fff;pointer-events:none;}
+.sim-stats .ss-row{display:flex;justify-content:space-between;margin-bottom:4px;}
+.sim-stats .ss-label{font-size:11px;color:var(--muted);}
+.sim-stats .ss-val{font-family:var(--mono);font-size:11px;color:var(--text);}
+.peaks-canvas-wrap{margin-top:6px;height:44px;position:relative;}
+.peaks-canvas-wrap canvas{width:100%;height:100%;position:absolute;top:0;left:0;}
+.ici-row{display:flex;align-items:center;gap:3px;margin-top:6px;overflow-x:auto;}
+.ici-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.ici-tick{width:1px;height:12px;background:var(--border);flex-shrink:0;}
+.ici-ms{font-family:var(--mono);font-size:8px;color:var(--muted);flex-shrink:0;}
+.pat-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+.pat-chip{padding:3px 7px;border-radius:3px;font-size:9.5px;font-family:var(--mono);background:var(--s3);border:1px solid var(--border);color:var(--muted);transition:.15s;}
+.pat-chip.match{border-color:var(--teal);color:var(--teal);background:rgba(6,212,204,.07);}
+.ctrl-lbl{font-size:11px;color:var(--muted);margin-bottom:2px;margin-top:7px;display:flex;justify-content:space-between;}
+.ctrl-lbl:first-child{margin-top:0;}
+.ctrl-lbl .cv{font-family:var(--mono);color:var(--amber);}
+input[type=range]{width:100%;accent-color:var(--teal);height:3px;margin:2px 0 5px;}
+.coda-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:5px 9px;border-radius:5px;font-family:var(--mono);font-size:11.5px;margin-top:4px;}
+.coda-input:focus{outline:none;border-color:var(--teal);}
+.btn-row{display:flex;gap:5px;margin-top:5px;}
+.btn-preset{flex:1;background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px;border-radius:5px;font-size:9.5px;cursor:pointer;font-family:var(--mono);transition:.15s;}
+.btn-preset:hover{border-color:var(--amber);color:var(--amber);}
+
+/* VOWEL TYPE SELECTOR */
+.vowel-select{display:flex;gap:4px;margin-top:5px;}
+.vt-btn{flex:1;padding:5px 4px;border:1px solid var(--border);background:transparent;border-radius:5px;font-size:9px;cursor:pointer;font-family:var(--mono);color:var(--muted);transition:.15s;text-align:center;line-height:1.3;}
+.vt-btn:hover{border-color:var(--teal);}
+.vt-btn.active{border-color:var(--teal);color:var(--teal);background:rgba(6,212,204,.08);}
+.vt-btn.active.type-i{border-color:var(--purple);color:var(--purple);background:rgba(155,92,246,.08);}
+
+.predeform-wrap{display:flex;align-items:center;gap:7px;padding:6px 9px;background:var(--s2);border:1px solid var(--border);border-radius:5px;cursor:pointer;margin-bottom:7px;transition:.15s;}
+.predeform-wrap:hover{border-color:var(--amber);}
+.predeform-wrap span{font-size:10px;color:var(--muted);}
+.btn-emit{width:100%;padding:9px;background:linear-gradient(135deg,var(--teal),#0891b2);border:none;border-radius:7px;color:#000;font-family:var(--title);font-size:11px;font-weight:700;letter-spacing:.1em;cursor:pointer;transition:.2s;text-transform:uppercase;}
+.btn-emit:hover{filter:brightness(1.12);}
+.btn-emit:disabled{opacity:.45;cursor:not-allowed;}
+.impact-row{display:flex;align-items:center;gap:10px;}
+.impact-ring-wrap{position:relative;width:58px;height:58px;flex-shrink:0;}
+.impact-ring-wrap canvas{width:58px;height:58px;}
+.impact-val{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:var(--title);font-size:13px;font-weight:900;color:#fff;pointer-events:none;text-align:center;line-height:1;}
+.impact-val small{font-size:7px;display:block;color:var(--muted);}
+.impact-stats{flex:1;}
+.ist{display:flex;justify-content:space-between;margin-bottom:4px;}
+.ist .il{font-size:10px;color:var(--muted);}
+.ist .iv{font-family:var(--mono);font-size:11px;color:var(--text);}
+.ph-page{width:100%;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:var(--muted);}
+.ph-page h2{font-family:var(--title);font-size:18px;color:var(--text);}
+.ph-page p{font-size:13px;max-width:380px;text-align:center;line-height:1.6;}
+.coming-soon{background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:10px 18px;font-family:var(--mono);font-size:10.5px;color:var(--amber);}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:var(--s1);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <div class="logo-ring"></div>
+    <div class="brand-text"><h1>WHALES LANGUAGE</h1><span>ESCUCHAR · COMPRENDER · CONECTAR</span></div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-page="lab">Laboratorio de Patrones</div>
+    <div class="nav-tab" data-page="citizen">Ciencia Ciudadana</div>
+    <div class="nav-tab" data-page="learn">Aprende</div>
+    <div class="nav-tab" data-page="field">Misión de Campo</div>
+  </div>
+  <div class="nav-right">
+    <div class="user-badge">
+      <div class="user-av">OE</div>
+      <div><div class="user-name">Ocean Explorer</div><div class="user-lvl">NIVEL 7 · 2.350 pts</div></div>
+    </div>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="page active" id="page-lab">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-hdr"><h3>🐋 Tipos de Coda</h3></div>
+      <div id="coda-alphabet-list"></div>
+      <div class="pint-footer">
+        <p>Inspirado en las pintaderas canarias — símbolos que codifican patrones desde el origen.</p>
+        <p class="pint-epist">Los patrones aquí representados son estructuras observadas en vocalizaciones. Su significado semántico permanece bajo investigación.</p>
+        <div class="pint-stones" id="pint-stones"></div>
+      </div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="center">
+      <div id="viewer-wrap">
+        <div class="depth-overlay">
+          <span>▼ 0 m</span><span>— 500 m —</span><span>— 900 m —</span><span>— 1400 m —</span><span>▼ 2000 m</span>
+        </div>
+        <div class="sofar-overlay">— CANAL SOFAR ~900 m —</div>
+        <div class="vchips">
+          <div class="vchip">Velocidad: <span class="cv" id="vc-speed">1480 m/s</span></div>
+          <div class="vchip">Retardo: <span class="cv" id="vc-delay">—</span></div>
+          <div class="vchip">Atenuación: <span class="cv" id="vc-atten">—</span></div>
+        </div>
+      </div>
+
+      <!-- TABBED SPECTRAL ANALYSIS -->
+      <div class="spec-sec">
+        <div class="spec-hdr">
+          <h3>Análisis Espectral</h3>
+          <span class="slabel em">EMITIDA</span>
+          <span class="slabel rx">RECIBIDA</span>
+          <div class="spec-vtabs">
+            <button class="spec-vtab active" data-sview="stft">STFT</button>
+            <button class="spec-vtab" data-sview="formants">Formantes · Beguš 2025</button>
+          </div>
+        </div>
+
+        <!-- VIEW 1: STFT -->
+        <div class="spec-view active" id="sview-stft">
+          <div class="spec-body">
+            <div class="spec-pane" id="pane-em">
+              <canvas id="canvas-stft-em"></canvas>
+              <div class="spec-info">SEÑAL EMITIDA · 0–20 kHz</div>
+            </div>
+            <div style="width:1px;background:var(--border);flex-shrink:0;"></div>
+            <div class="spec-pane" id="pane-rx">
+              <canvas id="canvas-stft-rx"></canvas>
+              <div class="spec-info">SEÑAL RECIBIDA · 0–20 kHz</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 2: FORMANT ASSEMBLY (Beguš et al. 2025) -->
+        <div class="spec-view" id="sview-formants">
+          <div class="formant-body">
+            <!-- Left: time-insensitive assembly spectrogram -->
+            <div class="assembly-pane">
+              <canvas id="canvas-assembly"></canvas>
+              <div class="assembly-label">
+                <b>Ensamblaje temporal-insensible</b> · clics concatenados sin ICI
+              </div>
+            </div>
+            <!-- Center: LPC spectrum -->
+            <div class="lpc-pane">
+              <canvas id="canvas-lpc"></canvas>
+              <div class="lpc-label">Espectro LPC · formantes</div>
+            </div>
+            <!-- Right: classification panel -->
+            <div class="formant-classify">
+              <div class="vowel-big" id="vowel-big-display">—<small>coda-vocal</small></div>
+              <div class="fv-row"><span class="fk">F1</span><span class="fv" id="f-f1">—</span></div>
+              <div class="fv-row"><span class="fk">F2</span><span class="fv" id="f-f2">—</span></div>
+              <div class="fv-row"><span class="fk">F1 ref.</span><span class="fv" style="color:var(--muted)">a: 5780 Hz</span></div>
+              <div class="fv-row"><span class="fk">F1+F2 ref.</span><span class="fv" style="color:var(--muted)">i: 3757+6579</span></div>
+              <div class="diph-badge level" id="diph-badge">Nivel</div>
+              <div class="epist-note">Patrones estructurados observados (Beguš et al. 2025). Función semántica exacta bajo investigación.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="rpanel">
+      <div class="rsec">
+        <h4>Similitud Acústica</h4>
+        <div class="sim-row">
+          <div class="sim-ring-wrap">
+            <canvas id="sim-ring-canvas" width="68" height="68"></canvas>
+            <div class="sim-val" id="sim-val">—</div>
+          </div>
+          <div class="sim-stats">
+            <div class="ss-row"><span class="ss-label">Picos detect.</span><span class="ss-val" id="stat-peaks">—</span></div>
+            <div class="ss-row"><span class="ss-label">Corr. espectral</span><span class="ss-val" id="stat-spec">—</span></div>
+            <div class="ss-row"><span class="ss-label">Tipo vocal</span><span class="ss-val" id="stat-vowel">—</span></div>
+          </div>
+        </div>
+        <div class="peaks-canvas-wrap"><canvas id="peaks-canvas" width="230" height="44"></canvas></div>
+      </div>
+
+      <div class="rsec">
+        <h4>Intervalos ICI</h4>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:11px;color:var(--muted);">N° intervalos</span>
+          <span style="font-family:var(--mono);font-size:13px;color:var(--teal);" id="ici-count">—</span>
+        </div>
+        <div class="ici-row" id="ici-row"></div>
+      </div>
+
+      <div class="rsec">
+        <h4>Tipo de Patrón</h4>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <canvas id="match-symbol" width="36" height="36"></canvas>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff;" id="match-name">—</div>
+            <div style="font-size:10px;color:var(--muted);font-family:var(--mono);" id="match-clan">—</div>
+          </div>
+        </div>
+        <div style="font-size:10.5px;color:var(--muted);line-height:1.5;" id="match-desc">Emite una coda para analizar el patrón.</div>
+        <div class="pat-chips" id="pat-chips"></div>
+      </div>
+
+      <div class="rsec">
+        <h4>Parámetros Físicos</h4>
+        <div class="ctrl-lbl">Profundidad Emisor <span class="cv" id="cv-ed">900 m</span></div>
+        <input type="range" id="sl-ed" min="10" max="2000" value="900" step="10">
+        <div class="ctrl-lbl">Profundidad Receptor <span class="cv" id="cv-rd">900 m</span></div>
+        <input type="range" id="sl-rd" min="10" max="2000" value="900" step="10">
+        <div class="ctrl-lbl">Distancia horizontal <span class="cv" id="cv-dist">5 km</span></div>
+        <input type="range" id="sl-dist" min="0.5" max="20" value="5" step="0.5">
+        <div class="ctrl-lbl" style="margin-top:8px;">Secuencia Coda (ms:kHz)</div>
+        <input class="coda-input" id="coda-input" value="200:8, 200:8, 100:9, 100:9, 100:9">
+        <div class="btn-row">
+          <button class="btn-preset" data-seq="200:8, 200:8, 200:8">1+1+1</button>
+          <button class="btn-preset" data-seq="200:8, 200:8, 100:9, 100:9, 100:9">1+1+3</button>
+          <button class="btn-preset" data-seq="180:8, 180:8, 180:8, 180:8, 180:8">5R</button>
+        </div>
+
+        <!-- VOWEL TYPE SELECTOR — Beguš et al. 2025 -->
+        <div class="ctrl-lbl" style="margin-top:10px;">Tipo vocal (Beguš et al. 2025) <span class="cv" id="cv-vowel">a</span></div>
+        <div class="vowel-select">
+          <button class="vt-btn active" data-vtype="a">a-coda<br><span style="color:var(--muted);font-size:8px;">~5780 Hz</span></button>
+          <button class="vt-btn type-i" data-vtype="i">i-coda<br><span style="color:var(--muted);font-size:8px;">~3757+6579</span></button>
+          <button class="vt-btn" data-vtype="diphthong">diptongo<br><span style="color:var(--muted);font-size:8px;">trayect.</span></button>
+        </div>
+      </div>
+
+      <div class="rsec">
+        <label class="predeform-wrap">
+          <input type="checkbox" id="cb-predeform" style="accent-color:var(--amber);">
+          <span>🔄 Modo Pre-Deformación</span>
+        </label>
+        <button class="btn-emit" id="btn-emit">🔊 EMITIR CODA</button>
+      </div>
+
+      <div class="rsec">
+        <h4>Tu Impacto</h4>
+        <div class="impact-row">
+          <div class="impact-ring-wrap">
+            <canvas id="impact-ring" width="58" height="58"></canvas>
+            <div class="impact-val"><span id="impact-num">0</span><small>patrones</small></div>
+          </div>
+          <div class="impact-stats">
+            <div class="ist"><span class="il">Conexiones</span><span class="iv" id="stat-conn">0</span></div>
+            <div class="ist"><span class="il">Aportaciones IA</span><span class="iv" id="stat-ai">0</span></div>
+            <div class="ist"><span class="il">Sesiones</span><span class="iv" id="stat-sess">1</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /page-lab -->
+
+  <div class="page ph-page" id="page-citizen">
+    <h2>Ciencia Ciudadana</h2>
+    <p>Contribuye con grabaciones del océano y ayuda a entrenar los modelos de análisis de patrones de vocalización cetácea.</p>
+    <div class="coming-soon">⚡ Módulo en desarrollo — Próximamente</div>
+  </div>
+  <div class="page ph-page" id="page-learn">
+    <h2>Aprende</h2>
+    <p>Canal SOFAR, bioacústica de cachalotes, estructura de codas, formantes vocálicos y transmisión cultural en clanes.</p>
+    <div class="coming-soon">📚 Contenido educativo — Próximamente</div>
+  </div>
+  <div class="page ph-page" id="page-field">
+    <h2>Misión de Campo</h2>
+    <p>Únete a misiones activas en los océanos Atlántico y Pacífico. La contaminación acústica antropogénica es la principal amenaza activa.</p>
+    <div class="coming-soon">🌊 Integración de datos en vivo — Próximamente</div>
+  </div>
+</div>
+
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+
+// ════════════════════════════════════════════════════════
+// MÓDULO FÍSICO ACÚSTICO
+// ════════════════════════════════════════════════════════
+const AcousticPhysics = (() => {
+  function soundSpeed(d){
+    const ss=1530,sc=1480,sd=1505,dc=900;
+    return d<dc ? ss+(sc-ss)*Math.pow(d/dc,2) : sc+(sd-sc)*Math.pow((d-dc)/(2000-dc),2);
+  }
+  function thorpAttenuation(f,dist){
+    const f2=f*f; const a=0.11*f2/(1+f2)+44*f2/(4100+f2)+0.0003*f2;
+    return Math.pow(10,-a*dist/20);
+  }
+  function spectralCutoff(dist){ return Math.max(2,25-dist*1.2); }
+  function computeTravelTime(ed,rd,dist){
+    let t=0,z=ed,layers=40; const dz=(rd-ed)/layers,dx=(dist*1000)/layers;
+    for(let i=0;i<layers;i++){const c=soundSpeed(Math.max(0,Math.min(2000,z+dz/2)));t+=Math.sqrt(dx*dx+dz*dz)/c;z+=dz;}
+    return t;
+  }
+  function traceRayPath(ed,rd,dist,N=80){
+    const pts=[],sofarD=900;
+    for(let i=0;i<=N;i++){
+      const t=i/N, x=t*dist*1000;
+      const dd=ed+(rd-ed)*t;
+      const pull=0.18*Math.sin(Math.PI*t)*(sofarD-dd)*(1-Math.abs(dd-sofarD)/1200);
+      pts.push({x,depth:Math.max(0,Math.min(2000,dd+pull))});
+    }
+    return pts;
+  }
+  return {soundSpeed,thorpAttenuation,spectralCutoff,computeTravelTime,traceRayPath};
+})();
+
+// ════════════════════════════════════════════════════════
+// AUDIO ENGINE (con síntesis de formantes)
+// ════════════════════════════════════════════════════════
+const AudioEngine = (() => {
+  let ctx=null;
+  function ensure(){if(!ctx)ctx=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==='suspended')ctx.resume();return ctx;}
+  function synthesizeClick(fKhz,durMs=8,amp=0.78){
+    const ac=ensure(),sr=ac.sampleRate,n=Math.floor(sr*durMs/1000);
+    const buf=ac.createBuffer(1,n,sr),d=buf.getChannelData(0);
+    const fHz=fKhz*1000,sig=durMs/2000/3;
+    for(let i=0;i<n;i++){const t=i/sr;d[i]=amp*Math.exp(-0.5*Math.pow((t-durMs/2000)/sig,2))*Math.sin(2*Math.PI*fHz*t);}
+    return buf;
+  }
+  function buildCodaBuffer(seq,predeform=false){
+    const ac=ensure(),sr=ac.sampleRate;
+    const totalMs=seq.reduce((s,{intervalMs})=>s+intervalMs,0)+200;
+    const tot=Math.floor(sr*totalMs/1000);
+    const buf=ac.createBuffer(1,tot,sr),d=buf.getChannelData(0);
+    let cur=0;
+    for(const {intervalMs,freqKhz} of seq){
+      const fq=predeform?Math.min(25,freqKhz*1.3):freqKhz;
+      const cb=synthesizeClick(fq,8,.8),cd=cb.getChannelData(0);
+      for(let i=0;i<cd.length&&cur+i<tot;i++)d[cur+i]+=cd[i];
+      cur+=Math.floor(sr*intervalMs/1000);
+    }
+    return buf;
+  }
+  // Apply formant shaping per Beguš et al. 2025
+  async function applyFormantShaping(buf,vowelType){
+    const ac=ensure();
+    const oc=new OfflineAudioContext(1,buf.length,buf.sampleRate);
+    const src=oc.createBufferSource(); src.buffer=buf;
+    const gOut=oc.createGain(); gOut.gain.value=1;
+    if(vowelType==='a'){
+      // Single formant ~5780 Hz
+      const pk=oc.createBiquadFilter(); pk.type='peaking';
+      pk.frequency.value=5780; pk.Q.value=6; pk.gain.value=14;
+      src.connect(pk); pk.connect(gOut);
+    } else if(vowelType==='i'){
+      // Two formants: F1~3757, F2~6579
+      const f1=oc.createBiquadFilter(); f1.type='peaking';
+      f1.frequency.value=3757; f1.Q.value=5; f1.gain.value=13;
+      const f2=oc.createBiquadFilter(); f2.type='peaking';
+      f2.frequency.value=6579; f2.Q.value=5; f2.gain.value=11;
+      src.connect(f1); f1.connect(f2); f2.connect(gOut);
+    } else if(vowelType==='diphthong'){
+      // Rising diphthong: start at 3500Hz, gradient toward 7000Hz (simulated via two peaks)
+      const f1=oc.createBiquadFilter(); f1.type='peaking';
+      f1.frequency.value=3500; f1.Q.value=4; f1.gain.value=10;
+      const f2=oc.createBiquadFilter(); f2.type='peaking';
+      f2.frequency.value=7000; f2.Q.value=4; f2.gain.value=8;
+      src.connect(f1); f1.connect(f2); f2.connect(gOut);
+    } else {
+      src.connect(gOut);
+    }
+    gOut.connect(oc.destination); src.start(0);
+    return oc.startRendering();
+  }
+  async function applyAcoustics(buf,cutoffKhz,amp){
+    const ac=ensure();
+    const oc=new OfflineAudioContext(1,buf.length,buf.sampleRate);
+    const src=oc.createBufferSource(); src.buffer=buf;
+    const filt=oc.createBiquadFilter(); filt.type='lowpass';
+    filt.frequency.value=Math.max(500,cutoffKhz*1000); filt.Q.value=0.5;
+    const gain=oc.createGain(); gain.gain.value=amp;
+    src.connect(filt); filt.connect(gain); gain.connect(oc.destination); src.start(0);
+    return oc.startRendering();
+  }
+  function play(buf,delay=0){
+    const ac=ensure(),src=ac.createBufferSource(); src.buffer=buf;
+    const g=ac.createGain(); g.gain.value=0.38;
+    src.connect(g); g.connect(ac.destination); src.start(ac.currentTime+delay);
+  }
+  return {buildCodaBuffer,applyFormantShaping,applyAcoustics,play};
+})();
+
+// ════════════════════════════════════════════════════════
+// STFT SPECTROGRAM ENGINE
+// ════════════════════════════════════════════════════════
+const SpectrogramEngine = (() => {
+  function fft(re,im){
+    const n=re.length;
+    for(let i=1,j=0;i<n;i++){let b=n>>1;for(;j&b;b>>=1)j^=b;j^=b;if(i<j){[re[i],re[j]]=[re[j],re[i]];[im[i],im[j]]=[im[j],im[i]];}}
+    for(let len=2;len<=n;len<<=1){const ang=-2*Math.PI/len,wr=Math.cos(ang),wi=Math.sin(ang);for(let i=0;i<n;i+=len){let ur=1,ui=0;for(let j=0;j<(len>>1);j++){const h=i+j+(len>>1),vr=re[h]*ur-im[h]*ui,vi=re[h]*ui+im[h]*ur;re[h]=re[i+j]-vr;im[h]=im[i+j]-vi;re[i+j]+=vr;im[i+j]+=vi;const nr=ur*wr-ui*wi;ui=ur*wi+ui*wr;ur=nr;}}}
+  }
+  function colorA(v){const p=[[2,6,23],[4,60,100],[6,182,212],[245,158,11],[239,68,68]];const s=v*(p.length-1),i=Math.min(Math.floor(s),p.length-2),t=s-i;return p[i].map((c,k)=>Math.round(c+t*(p[i+1][k]-c)));}
+  function colorB(v){const p=[[2,6,23],[30,15,60],[100,20,150],[168,85,247],[236,72,153],[239,68,68]];const s=v*(p.length-1),i=Math.min(Math.floor(s),p.length-2),t=s-i;return p[i].map((c,k)=>Math.round(c+t*(p[i+1][k]-c)));}
+  function computeSTFT(audioBuf,winSize=512,hop=128,maxKhz=20){
+    const data=audioBuf.getChannelData(0),sr=audioBuf.sampleRate;
+    const maxBin=Math.floor(maxKhz*1000*winSize/sr);
+    const win=new Float32Array(winSize);
+    for(let i=0;i<winSize;i++)win[i]=0.5*(1-Math.cos(2*Math.PI*i/(winSize-1)));
+    const frames=[];
+    for(let s=0;s+winSize<=data.length;s+=hop){
+      const re=new Float32Array(winSize),im=new Float32Array(winSize);
+      for(let i=0;i<winSize;i++)re[i]=data[s+i]*win[i];
+      fft(re,im);
+      const mag=new Float32Array(maxBin);
+      for(let k=0;k<maxBin;k++)mag[k]=Math.sqrt(re[k]*re[k]+im[k]*im[k]);
+      frames.push(mag);
+    }
+    return {frames,maxBin,sr,winSize};
+  }
+  function render(canvas,stft,colorFn){
+    if(!stft||stft.frames.length===0)return;
+    const w=canvas.width,h=canvas.height,ctx=canvas.getContext('2d');
+    ctx.clearRect(0,0,w,h);
+    const {frames,maxBin}=stft,nf=frames.length;
+    let gmax=0; for(const f of frames)for(const v of f)if(v>gmax)gmax=v;
+    if(gmax===0)return;
+    const img=ctx.createImageData(w,h),px=img.data;
+    for(let fi=0;fi<nf;fi++){
+      const xs=Math.floor(fi*w/nf),xe=Math.floor((fi+1)*w/nf);
+      for(let bi=0;bi<maxBin;bi++){
+        const val=Math.pow(frames[fi][bi]/gmax,0.45);
+        const [r,g,b]=colorFn(val);
+        const ys=h-Math.floor((bi+1)*h/maxBin)-1,ye=h-Math.floor(bi*h/maxBin);
+        for(let x=xs;x<xe;x++)for(let y=ys;y<=ye&&y<h;y++){const idx=(y*w+x)*4;px[idx]=r;px[idx+1]=g;px[idx+2]=b;px[idx+3]=255;}
+      }
+    }
+    ctx.putImageData(img,0,0);
+    ctx.fillStyle='rgba(5,12,25,.65)';ctx.fillRect(0,0,34,h);
+    ctx.fillStyle='#4A7A9B';ctx.font='8px Share Tech Mono';
+    const {sr,winSize}=stft;
+    for(let k=0;k<=20;k+=5){const bin=Math.floor(k*1000*winSize/sr);if(bin>=maxBin)continue;const y=h-Math.floor(bin*h/maxBin)-1;ctx.fillText(k+'k',2,Math.max(y,8));ctx.fillStyle='rgba(74,122,155,.2)';ctx.fillRect(34,y,w-34,1);ctx.fillStyle='#4A7A9B';}
+  }
+  function extractPeaks(buf){
+    if(!buf)return{env:[],peaks:[],stepMs:5};
+    const data=buf.getChannelData(0),sr=buf.sampleRate,step=Math.floor(sr*0.005),env=[],thresh_frac=0.35;
+    for(let i=0;i<data.length;i+=step){let mx=0;for(let j=i;j<Math.min(i+step,data.length);j++)if(Math.abs(data[j])>mx)mx=Math.abs(data[j]);env.push(mx);}
+    const thresh=Math.max(...env)*thresh_frac,peaks=[];
+    for(let i=1;i<env.length-1;i++)if(env[i]>thresh&&env[i]>env[i-1]&&env[i]>env[i+1])peaks.push({idx:i,val:env[i]});
+    return{env,peaks,stepMs:5};
+  }
+  function spectralCentroid(buf){
+    if(!buf)return 0;
+    const d=buf.getChannelData(0),n=512,re=new Float32Array(n),im=new Float32Array(n);
+    for(let i=0;i<n&&i<d.length;i++)re[i]=d[i];
+    fft(re,im); let num=0,den=0;
+    for(let k=0;k<n/2;k++){const m=Math.sqrt(re[k]*re[k]+im[k]*im[k]);num+=k*m;den+=m;}
+    return den>0?num/den*buf.sampleRate/n:0;
+  }
+  return{computeSTFT,render,colorA,colorB,extractPeaks,spectralCentroid};
+})();
+
+// ════════════════════════════════════════════════════════
+// FORMANT ENGINE — Beguš et al. 2025
+// LPC + time-insensitive assembly + a/i-coda classification
+// ════════════════════════════════════════════════════════
+const FormantEngine = (() => {
+
+  // Levinson-Durbin LPC
+  function computeLPC(signal, order) {
+    const n = signal.length;
+    const r = new Float64Array(order + 1);
+    for (let k = 0; k <= order; k++) {
+      let s = 0; for (let i = 0; i < n - k; i++) s += signal[i] * signal[i + k]; r[k] = s;
+    }
+    if (r[0] === 0) return new Float64Array(order + 1);
+    const a = new Float64Array(order + 1); a[0] = 1;
+    let e = r[0];
+    for (let m = 1; m <= order; m++) {
+      let km = r[m];
+      for (let j = 1; j < m; j++) km += a[j] * r[m - j];
+      km = -km / e;
+      const ap = a.slice(0, m);
+      a[m] = km;
+      for (let j = 1; j < m; j++) a[j] = ap[j] + km * ap[m - j];
+      e *= (1 - km * km);
+      if (e <= 1e-12) break;
+    }
+    return a;
+  }
+
+  // Evaluate LPC magnitude spectrum (returns power spectrum)
+  function lpcSpectrum(a, numPoints) {
+    const spec = new Float32Array(numPoints);
+    for (let k = 0; k < numPoints; k++) {
+      const omega = Math.PI * k / numPoints;
+      let re = 0, im = 0;
+      for (let j = 0; j < a.length; j++) { re += a[j] * Math.cos(j * omega); im -= a[j] * Math.sin(j * omega); }
+      spec[k] = 1 / (re * re + im * im);
+    }
+    return spec;
+  }
+
+  // Find formant peaks in LPC spectrum
+  function findFormants(spec, sampleRate, numPoints) {
+    const formants = [];
+    for (let k = 2; k < numPoints - 2; k++) {
+      if (spec[k] > spec[k-1] && spec[k] > spec[k+1] && spec[k] > spec[k-2] && spec[k] > spec[k+2]) {
+        const freq = k * sampleRate / (2 * numPoints);
+        if (freq > 300 && freq < 12000) formants.push({ freq, mag: spec[k], bin: k });
+      }
+    }
+    formants.sort((a, b) => b.mag - a.mag);
+    return formants.slice(0, 4).sort((a, b) => a.freq - b.freq);
+  }
+
+  // Classify into a-coda / i-coda / diphthong based on Beguš et al. 2025
+  // a-coda: single formant below 10kHz (F1 ~5780 Hz)
+  // i-coda: two formants below 10kHz (F1 ~3757 Hz, F2 ~6579 Hz)
+  function classifyVowel(formants) {
+    const below10k = formants.filter(f => f.freq < 10000);
+    if (below10k.length === 0) return { type: '?', f1: null, f2: null, diphthong: 'nivel' };
+    if (below10k.length === 1) {
+      return { type: 'a', f1: below10k[0].freq, f2: null, diphthong: 'nivel' };
+    }
+    // Two or more formants → i-type
+    return { type: 'i', f1: below10k[0].freq, f2: below10k[1].freq, diphthong: 'nivel' };
+  }
+
+  // Time-insensitive assembly: extract click windows, concatenate
+  function assembleClicks(fullBuffer, sequence) {
+    const sr = fullBuffer.sampleRate;
+    const data = fullBuffer.getChannelData(0);
+    const winMs = 5, winSamples = Math.floor(sr * winMs / 1000);
+    const assembled = new Float32Array(winSamples * sequence.length);
+    let cursor = 0;
+    for (let ci = 0; ci < sequence.length; ci++) {
+      const segLen = Math.floor(sr * sequence[ci].intervalMs / 1000);
+      const segEnd = Math.min(cursor + segLen, data.length);
+      // Find peak in this click segment
+      let peakIdx = cursor, peakVal = 0;
+      for (let j = cursor; j < segEnd; j++) { if (Math.abs(data[j]) > peakVal) { peakVal = Math.abs(data[j]); peakIdx = j; } }
+      // Extract symmetric window around peak
+      const start = peakIdx - Math.floor(winSamples / 2);
+      for (let j = 0; j < winSamples; j++) {
+        const si = start + j;
+        assembled[ci * winSamples + j] = (si >= 0 && si < data.length) ? data[si] : 0;
+      }
+      cursor += segLen;
+    }
+    return { assembled, winSamples, sr };
+  }
+
+  // Render the time-insensitive assembly STFT (color: teal-amber)
+  function renderAssembly(canvas, assembled, winSamples, sr) {
+    const w = canvas.width, h = canvas.height;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#050e1a'; ctx.fillRect(0, 0, w, h);
+    if (!assembled || assembled.length === 0) return;
+
+    const nClicks = Math.floor(assembled.length / winSamples);
+    const fftSize = 256;
+    const maxFreqKhz = 15, maxBin = Math.floor(maxFreqKhz * 1000 * fftSize / sr);
+    const win = new Float32Array(fftSize);
+    for (let i = 0; i < fftSize; i++) win[i] = 0.5 * (1 - Math.cos(2 * Math.PI * i / (fftSize - 1)));
+
+    const allMags = [];
+    for (let ci = 0; ci < nClicks; ci++) {
+      const re = new Float32Array(fftSize), im = new Float32Array(fftSize);
+      const off = ci * winSamples;
+      for (let i = 0; i < fftSize && i < winSamples; i++) re[i] = (assembled[off + i] || 0) * win[i];
+      // inline FFT
+      for(let ii=1,jj=0;ii<fftSize;ii++){let b=fftSize>>1;for(;jj&b;b>>=1)jj^=b;jj^=b;if(ii<jj){[re[ii],re[jj]]=[re[jj],re[ii]];[im[ii],im[jj]]=[im[jj],im[ii]];}}
+      for(let len=2;len<=fftSize;len<<=1){const ang=-2*Math.PI/len,wr=Math.cos(ang),wi=Math.sin(ang);for(let ii=0;ii<fftSize;ii+=len){let ur=1,ui=0;for(let jj=0;jj<(len>>1);jj++){const hh=ii+jj+(len>>1),vr=re[hh]*ur-im[hh]*ui,vi=re[hh]*ui+im[hh]*ur;re[hh]=re[ii+jj]-vr;im[hh]=im[ii+jj]-vi;re[ii+jj]+=vr;im[ii+jj]+=vi;const nr=ur*wr-ui*wi;ui=ur*wi+ui*wr;ur=nr;}}}
+      const mag = new Float32Array(maxBin);
+      for (let k = 0; k < maxBin; k++) mag[k] = Math.sqrt(re[k]*re[k]+im[k]*im[k]);
+      allMags.push(mag);
+    }
+
+    let gmax = 0; for (const m of allMags) for (const v of m) if (v > gmax) gmax = v;
+    if (gmax === 0) return;
+
+    const img = ctx.createImageData(w, h), px = img.data;
+    const xMargin = 34;
+    for (let ci = 0; ci < nClicks; ci++) {
+      const xs = xMargin + Math.floor(ci * (w - xMargin) / nClicks);
+      const xe = xMargin + Math.floor((ci + 1) * (w - xMargin) / nClicks);
+      for (let bi = 0; bi < maxBin; bi++) {
+        const val = Math.pow(allMags[ci][bi] / gmax, 0.4);
+        // Teal-amber colormap
+        const p = [[2,6,23],[4,50,90],[6,182,212],[16,185,129],[245,158,11],[239,68,68]];
+        const sv = val*(p.length-1), si = Math.min(Math.floor(sv), p.length-2), st = sv-si;
+        const r = Math.round(p[si][0]+st*(p[si+1][0]-p[si][0]));
+        const g = Math.round(p[si][1]+st*(p[si+1][1]-p[si][1]));
+        const b = Math.round(p[si][2]+st*(p[si+1][2]-p[si][2]));
+        const ys = h - Math.floor((bi + 1) * h / maxBin) - 1;
+        const ye = h - Math.floor(bi * h / maxBin);
+        for (let x = xs; x < xe; x++) for (let y = ys; y <= ye && y < h; y++) {
+          const idx = (y * w + x) * 4; px[idx]=r; px[idx+1]=g; px[idx+2]=b; px[idx+3]=255;
+        }
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+
+    // Y axis labels
+    ctx.fillStyle = 'rgba(5,12,25,.7)'; ctx.fillRect(0, 0, xMargin, h);
+    ctx.fillStyle = '#4A7A9B'; ctx.font = '8px Share Tech Mono';
+    for (let k = 0; k <= maxFreqKhz; k += 3) {
+      const bin = Math.floor(k * 1000 * fftSize / sr);
+      if (bin >= maxBin) continue;
+      const y = h - Math.floor(bin * h / maxBin) - 1;
+      ctx.fillText(k + 'k', 2, Math.max(y, 8));
+      ctx.fillStyle = 'rgba(74,122,155,.2)'; ctx.fillRect(xMargin, y, w - xMargin, 1);
+      ctx.fillStyle = '#4A7A9B';
+    }
+
+    // Click separators
+    ctx.strokeStyle = 'rgba(6,212,204,.15)'; ctx.lineWidth = 1;
+    for (let ci = 1; ci < nClicks; ci++) {
+      const x = xMargin + Math.floor(ci * (w - xMargin) / nClicks);
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+    }
+
+    // Click labels
+    ctx.fillStyle = 'rgba(6,212,204,.5)'; ctx.font = '8px Share Tech Mono';
+    for (let ci = 0; ci < nClicks; ci++) {
+      const x = xMargin + Math.floor(ci * (w - xMargin) / nClicks) + 2;
+      ctx.fillText('C' + (ci + 1), x, h - 3);
+    }
+  }
+
+  // Render LPC spectrum with formant markers
+  function renderLPC(canvas, assembled, sr, formants, vowelType) {
+    const w = canvas.width, h = canvas.height;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#050e1a'; ctx.fillRect(0, 0, w, h);
+    if (!assembled || assembled.length === 0) return;
+
+    const order = 12, nPts = 512;
+    const signal = new Float64Array(Math.min(assembled.length, 2048));
+    for (let i = 0; i < signal.length; i++) signal[i] = assembled[i] || 0;
+
+    const a = computeLPC(signal, order);
+    const spec = lpcSpectrum(a, nPts);
+    let smax = 0; for (const v of spec) if (v > smax) smax = v;
+    if (smax === 0) return;
+
+    const xMargin = 34, maxFreqKhz = 15;
+    const maxBin = Math.floor(maxFreqKhz * 1000 * nPts / sr);
+
+    // Background
+    ctx.fillStyle = 'rgba(5,12,25,.7)'; ctx.fillRect(0, 0, xMargin, h);
+
+    // LPC spectrum curve
+    const col = vowelType === 'i' ? '#9B5CF6' : '#06D4CC';
+    ctx.beginPath(); ctx.strokeStyle = col; ctx.lineWidth = 1.5;
+    for (let k = 0; k < maxBin; k++) {
+      const x = xMargin + Math.floor(k * (w - xMargin) / maxBin);
+      const y = h - Math.floor(Math.pow(spec[k] / smax, 0.5) * (h - 6)) - 3;
+      k === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Fill under curve
+    ctx.fillStyle = vowelType === 'i' ? 'rgba(155,92,246,.08)' : 'rgba(6,212,204,.08)';
+    ctx.beginPath();
+    ctx.moveTo(xMargin, h);
+    for (let k = 0; k < maxBin; k++) {
+      const x = xMargin + Math.floor(k * (w - xMargin) / maxBin);
+      const y = h - Math.floor(Math.pow(spec[k] / smax, 0.5) * (h - 6)) - 3;
+      k === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.lineTo(w, h); ctx.closePath(); ctx.fill();
+
+    // Reference lines for a/i coda vowel formants (Beguš et al.)
+    const refLines = [
+      { freq: 5780, label: 'F1a', color: 'rgba(6,212,204,.4)' },
+      { freq: 3757, label: 'F1i', color: 'rgba(155,92,246,.4)' },
+      { freq: 6579, label: 'F2i', color: 'rgba(155,92,246,.3)' },
+    ];
+    refLines.forEach(({ freq, label, color }) => {
+      const bin = Math.floor(freq / (sr / 2) * nPts);
+      const x = xMargin + Math.floor(bin * (w - xMargin) / maxBin);
+      ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = color; ctx.font = '7px Share Tech Mono';
+      ctx.fillText(label, x + 2, 10);
+    });
+
+    // Detected formant markers
+    formants.forEach((f, idx) => {
+      const bin = Math.floor(f.freq / (sr / 2) * nPts);
+      const x = xMargin + Math.floor(bin * (w - xMargin) / maxBin);
+      const y = h - Math.floor(Math.pow(f.mag / smax, 0.5) * (h - 6)) - 3;
+      ctx.fillStyle = '#F5A623';
+      ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillText('F' + (idx + 1) + ':' + Math.round(f.freq) + 'Hz', x + 5, y - 2);
+    });
+
+    // Y freq labels
+    ctx.fillStyle = '#4A7A9B'; ctx.font = '8px Share Tech Mono';
+    for (let k = 0; k <= maxFreqKhz; k += 3) {
+      const bin = Math.floor(k * 1000 * nPts / sr);
+      if (bin >= maxBin) continue;
+      const x = xMargin + Math.floor(bin * (w - xMargin) / maxBin);
+      ctx.fillStyle = 'rgba(74,122,155,.2)';
+      ctx.fillRect(x, 0, 1, h);
+      ctx.fillStyle = '#4A7A9B';
+      ctx.fillText(k + 'k', x + 2, h - 3);
+    }
+  }
+
+  // Detect formant trajectory across clicks (level / rising / falling)
+  function detectDiphthong(assembled, winSamples, sr, nClicks) {
+    if (nClicks < 3) return 'nivel';
+    const order = 10, nPts = 256;
+    const f1Vals = [];
+    for (let ci = 0; ci < nClicks; ci++) {
+      const sig = new Float64Array(Math.min(winSamples, nPts));
+      const off = ci * winSamples;
+      for (let i = 0; i < sig.length; i++) sig[i] = assembled[off + i] || 0;
+      const a = computeLPC(sig, order);
+      const spec = lpcSpectrum(a, nPts);
+      const forms = findFormants(spec, sr, nPts);
+      if (forms.length > 0) f1Vals.push(forms[0].freq);
+    }
+    if (f1Vals.length < 3) return 'nivel';
+    const trend = f1Vals[f1Vals.length - 1] - f1Vals[0];
+    if (trend > 300) return 'ascendente';
+    if (trend < -300) return 'descendente';
+    return 'nivel';
+  }
+
+  function analyze(emittedBuffer, sequence) {
+    if (!emittedBuffer || sequence.length === 0) return null;
+    const { assembled, winSamples, sr } = assembleClicks(emittedBuffer, sequence);
+    const order = 14, nPts = 512;
+    const signal = new Float64Array(Math.min(assembled.length, 4096));
+    for (let i = 0; i < signal.length; i++) signal[i] = assembled[i] || 0;
+    const a = computeLPC(signal, order);
+    const spec = lpcSpectrum(a, nPts);
+    const formants = findFormants(spec, sr, nPts);
+    const vowelClass = classifyVowel(formants);
+    const diphthong = detectDiphthong(assembled, winSamples, sr, sequence.length);
+    vowelClass.diphthong = diphthong;
+    return { assembled, winSamples, sr, spec, formants, vowelClass };
+  }
+
+  return { analyze, renderAssembly, renderLPC };
+})();
+
+// ════════════════════════════════════════════════════════
+// CODA ALPHABET (con tipo vocal)
+// ════════════════════════════════════════════════════════
+const CodaAlphabet = (() => {
+  const types = [
+    { id:'111', name:'Tipo 1+1+1', symbol:'circle', desc:'Tres clics equidistantes. Patrón base de posicionamiento social.', clan:'Universal', seq:'200:8, 200:8, 200:8', pat:[1,1,1], col:'#06D4CC', vowelType:'a' },
+    { id:'113', name:'Tipo 1+1+3', symbol:'cross', desc:'Patrón de identidad de clan dominante en el Caribe Oriental. Puede aparecer como coda-a o coda-i (Beguš 2025).', clan:'Atlántico Norte', seq:'200:8, 200:8, 100:9, 100:9, 100:9', pat:[1,1,3], col:'#F5A623', vowelType:'i' },
+    { id:'5R', name:'Tipo 5R', symbol:'spiral', desc:'Cinco clics regulares. Alta cohesión social de grupo. Clanes del Caribe.', clan:'Caribe', seq:'180:8, 180:8, 180:8, 180:8, 180:8', pat:[5], col:'#9B5CF6', vowelType:'a' },
+    { id:'213', name:'Tipo 2+1+3', symbol:'diamond', desc:'Patrón de identidad del Caribe Oriental (EC1 vs EC2). Diferenciación de clan.', clan:'Caribe Oriental', seq:'150:8.5, 150:8.5, 250:7.5, 120:9, 120:9, 120:9', pat:[2,1,3], col:'#10D98A', vowelType:'i' },
+    { id:'131', name:'Tipo 1+3+1', symbol:'triangle', desc:'Patrón de llamada de agrupación. Menor frecuencia de observación en los registros.', clan:'Pacífico', seq:'300:7, 100:9, 100:9, 100:9, 300:7', pat:[1,3,1], col:'#EF4444', vowelType:'a' },
+    { id:'custom', name:'Personalizado', symbol:'custom', desc:'Define y analiza tu propio patrón de vocalización.', clan:'—', seq:'200:8, 180:7.5, 220:8.5', pat:[], col:'#64748b', vowelType:'a' }
+  ];
+
+  function classify(seq) {
+    const n = seq.length;
+    for (const t of types.slice(0, -1)) {
+      if (n === t.pat.reduce((a, b) => a + b, 0)) return t;
+    }
+    return types[types.length - 1];
+  }
+
+  function drawSymbol(ctx, cx, cy, sz, type, active) {
+    ctx.save(); ctx.translate(cx, cy);
+    const s = sz / 2, col = active ? type.col : '#2A4A66';
+    ctx.strokeStyle = col; ctx.fillStyle = 'transparent'; ctx.lineWidth = active ? 1.6 : 1;
+    if (active) { ctx.shadowColor = type.col; ctx.shadowBlur = 10; }
+    switch (type.symbol) {
+      case 'circle':
+        for (let r = s * .3; r <= s; r += s * .35) { ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke(); }
+        for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) { ctx.beginPath(); ctx.moveTo(Math.cos(a)*s*.3,Math.sin(a)*s*.3); ctx.lineTo(Math.cos(a)*s,Math.sin(a)*s); ctx.stroke(); }
+        break;
+      case 'cross':
+        ctx.beginPath(); ctx.arc(0, 0, s, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-s,-s); ctx.lineTo(s,s); ctx.moveTo(s,-s); ctx.lineTo(-s,s); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, s * .5, 0, Math.PI * 2); ctx.stroke();
+        break;
+      case 'spiral':
+        ctx.beginPath();
+        for (let a = 0; a < Math.PI * 4; a += 0.08) { const r = (a/(Math.PI*4))*s; a===0?ctx.moveTo(Math.cos(a)*r,Math.sin(a)*r):ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r); }
+        ctx.stroke();
+        for (let i = 0; i < 5; i++) { const a = i*Math.PI*2/5; ctx.beginPath(); ctx.arc(Math.cos(a)*s*.7,Math.sin(a)*s*.7,s*.08,0,Math.PI*2); ctx.fillStyle=col; ctx.fill(); }
+        break;
+      case 'diamond':
+        ctx.beginPath(); ctx.moveTo(0,-s); ctx.lineTo(s,0); ctx.lineTo(0,s); ctx.lineTo(-s,0); ctx.closePath(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0,-s*.5); ctx.lineTo(s*.5,0); ctx.lineTo(0,s*.5); ctx.lineTo(-s*.5,0); ctx.closePath(); ctx.stroke();
+        for (let i = 0; i < 4; i++) { const a=i*Math.PI/2+Math.PI/4; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(a)*s*.48,Math.sin(a)*s*.48); ctx.stroke(); }
+        break;
+      case 'triangle':
+        ctx.beginPath(); ctx.moveTo(0,-s*.9); ctx.lineTo(s*.8,s*.5); ctx.lineTo(-s*.8,s*.5); ctx.closePath(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0,-s*.4); ctx.lineTo(s*.4,s*.25); ctx.lineTo(-s*.4,s*.25); ctx.closePath(); ctx.stroke();
+        break;
+      default:
+        ctx.beginPath(); ctx.arc(0,0,s,0,Math.PI*2); ctx.stroke();
+        [45,135,225,315].forEach(a=>{const r=a*Math.PI/180;ctx.beginPath();ctx.moveTo(Math.cos(r)*s*.4,Math.sin(r)*s*.4);ctx.lineTo(Math.cos(r)*s,Math.sin(r)*s);ctx.stroke();});
+    }
+    ctx.restore();
+  }
+
+  return { types, classify, drawSymbol };
+})();
+
+// ════════════════════════════════════════════════════════
+// THREE.JS OCEAN CROSS-SECTION
+// ════════════════════════════════════════════════════════
+const viewerWrap = document.getElementById('viewer-wrap');
+const W = viewerWrap.clientWidth || window.innerWidth - 466 || 600;
+const H = viewerWrap.clientHeight || window.innerHeight - 52 - 240 || 260;
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x020A12);
+scene.fog = new THREE.FogExp2(0x020A12, 0.000045);
+const cam = new THREE.PerspectiveCamera(45, W / H, 1, 100000);
+cam.position.set(5000, -900, 18000); cam.lookAt(5000, -1000, 0);
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(W, H); viewerWrap.appendChild(renderer.domElement);
+scene.add(new THREE.AmbientLight(0x1e3a5f, 1));
+const dLight = new THREE.DirectionalLight(0x224466, 0.8);
+dLight.position.set(5000, 3000, 5000); scene.add(dLight);
+const oceanMat = new THREE.MeshBasicMaterial({ color: 0x0A1E35, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(12000, 4000), oceanMat);
+floor.rotation.x = -Math.PI / 2; floor.position.set(5000, -2000, 0); scene.add(floor);
+for (let d = 0; d <= 2000; d += 500) {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute([0,-d,-2000, 10000,-d,-2000], 3));
+  scene.add(new THREE.Line(g, new THREE.LineBasicMaterial({ color: d===900?0x06b6d4:0x1B3A52, transparent:true, opacity:d===900?.35:.2 })));
+}
+for (let x = 0; x <= 10000; x += 2000) {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute([x,0,-2000, x,-2000,-2000], 3));
+  scene.add(new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0x1B3A52, transparent:true, opacity:.12 })));
+}
+const sg = new THREE.BufferGeometry();
+sg.setAttribute('position', new THREE.Float32BufferAttribute([0,0,-500, 10000,0,-500], 3));
+scene.add(new THREE.Line(sg, new THREE.LineBasicMaterial({ color: 0x06D4CC, transparent:true, opacity:.25 })));
+const emitterMesh = new THREE.Mesh(new THREE.SphereGeometry(90,24,12), new THREE.MeshStandardMaterial({ color:0xF5A623, emissive:0xF5A623, emissiveIntensity:2, roughness:.2 }));
+const receiverMesh = new THREE.Mesh(new THREE.SphereGeometry(80,24,12), new THREE.MeshStandardMaterial({ color:0x06D4CC, emissive:0x06D4CC, emissiveIntensity:1.8, roughness:.2 }));
+scene.add(emitterMesh); scene.add(receiverMesh);
+let rayLine = null;
+function buildRayLine(pts) {
+  if (rayLine) scene.remove(rayLine);
+  const pos = new Float32Array(pts.length * 3);
+  pts.forEach(({ x, depth }, i) => { pos[i*3]=x; pos[i*3+1]=-depth; pos[i*3+2]=0; });
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  rayLine = new THREE.Line(g, new THREE.LineBasicMaterial({ color:0x06D4CC, transparent:true, opacity:.8 }));
+  scene.add(rayLine);
+}
+const emRings = [];
+for (let i = 0; i < 3; i++) {
+  const r = new THREE.Mesh(new THREE.TorusGeometry(150,10,6,48), new THREE.MeshBasicMaterial({ color:0xF5A623, transparent:true, opacity:0, depthWrite:false }));
+  r.rotation.x = -Math.PI / 2; r.visible = false; scene.add(r); emRings.push(r);
+}
+function positionActors(ed, rd, distKm) {
+  emitterMesh.position.set(0, -ed, 0); emRings.forEach(r => r.position.set(0, -ed, 0));
+  receiverMesh.position.set(distKm * 1000, -rd, 0);
+  buildRayLine(AcousticPhysics.traceRayPath(ed, rd, distKm));
+  document.getElementById('vc-speed').textContent = Math.round(AcousticPhysics.soundSpeed(ed)) + ' m/s';
+}
+let animRunning = false;
+function animatePulse(delay) {
+  if (animRunning) return; animRunning = true;
+  const start = performance.now(), dur = delay * 1000 + 600;
+  emRings.forEach(r => { r.visible=true; r.material.opacity=.7; r.scale.set(.1,.1,.1); });
+  function step(now) {
+    const t = Math.min((now - start) / dur, 1);
+    emRings.forEach((r, i) => { const ph=(t*1.5+i*0.3)%1; r.scale.setScalar(0.1+ph*4); r.material.opacity=Math.max(0,.7*(1-ph)); });
+    renderer.render(scene, cam);
+    if (t < 1) requestAnimationFrame(step); else { animRunning=false; emRings.forEach(r=>r.visible=false); }
+  }
+  requestAnimationFrame(step);
+}
+(function renderLoop() { renderer.render(scene, cam); requestAnimationFrame(renderLoop); })();
+function handleResize() {
+  const w = viewerWrap.clientWidth, h = viewerWrap.clientHeight;
+  if (w > 0 && h > 0) { cam.aspect = w/h; cam.updateProjectionMatrix(); renderer.setSize(w, h); }
+}
+window.addEventListener('resize', handleResize);
+if (window.ResizeObserver) new ResizeObserver(() => handleResize()).observe(viewerWrap);
+setTimeout(handleResize, 50); setTimeout(handleResize, 300);
+
+// ════════════════════════════════════════════════════════
+// UI — SIDEBAR ALPHABET
+// ════════════════════════════════════════════════════════
+const alphabetList = document.getElementById('coda-alphabet-list');
+CodaAlphabet.types.forEach((t, i) => {
+  const item = document.createElement('div'); item.className = 'coda-item' + (i === 1 ? ' active' : ''); item.dataset.id = t.id;
+  const cvs = document.createElement('canvas'); cvs.width = 32; cvs.height = 32; cvs.className = 'coda-symbol-canvas';
+  CodaAlphabet.drawSymbol(cvs.getContext('2d'), 16, 16, 28, t, i === 1);
+  item.appendChild(cvs);
+  const info = document.createElement('div');
+  info.innerHTML = `<div class="ci-name">${t.name}</div><div class="ci-clan">${t.clan}</div><span class="ci-vowel v${t.vowelType}">${t.vowelType}-coda</span>`;
+  item.appendChild(info);
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.coda-item').forEach(el => el.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('coda-input').value = t.seq;
+    // Set vowel type button
+    document.querySelectorAll('.vt-btn').forEach(b => { b.classList.toggle('active', b.dataset.vtype === t.vowelType); });
+    document.getElementById('cv-vowel').textContent = t.vowelType;
+    currentVowelType = t.vowelType;
+    document.querySelectorAll('.coda-symbol-canvas').forEach((c, j) => {
+      const ctx2 = c.getContext('2d'); ctx2.clearRect(0,0,32,32);
+      CodaAlphabet.drawSymbol(ctx2, 16, 16, 28, CodaAlphabet.types[j], j === i);
+    });
+  });
+  alphabetList.appendChild(item);
+});
+const stonesWrap = document.getElementById('pint-stones');
+CodaAlphabet.types.slice(0, 5).forEach(t => {
+  const c = document.createElement('canvas'); c.width = 32; c.height = 32; c.style = 'border-radius:50%;cursor:pointer;';
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#0D1F30'; ctx.beginPath(); ctx.arc(16,16,15,0,Math.PI*2); ctx.fill();
+  CodaAlphabet.drawSymbol(ctx, 16, 16, 26, t, true);
+  stonesWrap.appendChild(c);
+});
+
+// ════════════════════════════════════════════════════════
+// ANALYSIS PANEL RENDERERS
+// ════════════════════════════════════════════════════════
+function drawSimilarityRing(pct) {
+  const cvs=document.getElementById('sim-ring-canvas'), ctx=cvs.getContext('2d');
+  ctx.clearRect(0,0,68,68);
+  ctx.beginPath(); ctx.arc(34,34,28,0,Math.PI*2); ctx.strokeStyle='#1B3A52'; ctx.lineWidth=5; ctx.stroke();
+  if (pct > 0) {
+    const col = pct > 70 ? '#06D4CC' : pct > 40 ? '#F5A623' : '#EF4444';
+    ctx.beginPath(); ctx.arc(34,34,28,-Math.PI/2,-Math.PI/2+Math.PI*2*(pct/100));
+    ctx.strokeStyle=col; ctx.lineWidth=5; ctx.lineCap='round'; ctx.shadowColor=col; ctx.shadowBlur=10; ctx.stroke();
+  }
+  document.getElementById('sim-val').textContent = pct > 0 ? pct + '%' : '—';
+}
+function drawImpactRing(n) {
+  const cvs=document.getElementById('impact-ring'), ctx=cvs.getContext('2d');
+  ctx.clearRect(0,0,58,58);
+  ctx.beginPath(); ctx.arc(29,29,22,0,Math.PI*2); ctx.strokeStyle='#1B3A52'; ctx.lineWidth=4; ctx.stroke();
+  if (n > 0) {
+    ctx.beginPath(); ctx.arc(29,29,22,-Math.PI/2,-Math.PI/2+Math.PI*2*Math.min(n/200,1));
+    ctx.strokeStyle='#9B5CF6'; ctx.lineWidth=4; ctx.lineCap='round'; ctx.stroke();
+  }
+  document.getElementById('impact-num').textContent = n;
+}
+function drawPeaksCanvas(env, peaks) {
+  const cvs=document.getElementById('peaks-canvas'), ctx=cvs.getContext('2d');
+  const w=cvs.width, h=cvs.height; ctx.clearRect(0,0,w,h);
+  if (!env||env.length===0) return;
+  const mx = Math.max(...env)||1;
+  ctx.strokeStyle='rgba(6,212,204,.6)'; ctx.lineWidth=1; ctx.beginPath();
+  env.forEach((v,i)=>{ const x=i*w/env.length, y=h-v/mx*(h-4)-2; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }); ctx.stroke();
+  peaks.forEach(({idx,val})=>{ const x=idx*w/env.length, y=h-val/mx*(h-4)-2; ctx.fillStyle='#F5A623'; ctx.beginPath(); ctx.arc(x,y,2.5,0,Math.PI*2); ctx.fill(); });
+}
+function drawICIRow(seq) {
+  const row=document.getElementById('ici-row'); row.innerHTML='';
+  document.getElementById('ici-count').textContent = seq.length > 1 ? seq.length-1 : '—';
+  if (!seq||seq.length<2){row.innerHTML='<span style="font-family:var(--mono);font-size:9px;color:var(--muted)">—</span>';return;}
+  seq.forEach(()=>{ const d=document.createElement('div'); d.className='ici-dot'; d.style.background='var(--teal)'; row.appendChild(d); });
+  for (let i=0;i<seq.length-1;i++) {
+    const line=document.createElement('div'); line.style.flex='1'; line.style.height='1px'; line.style.background='var(--border)'; row.appendChild(line);
+    const lbl=document.createElement('span'); lbl.className='ici-ms'; lbl.textContent=seq[i].intervalMs+'ms'; row.appendChild(lbl);
+  }
+}
+function updateMatchPanel(type) {
+  document.getElementById('match-name').textContent = type.name;
+  document.getElementById('match-clan').textContent = type.clan;
+  document.getElementById('match-desc').textContent = type.desc;
+  const cvs=document.getElementById('match-symbol'), ctx=cvs.getContext('2d');
+  ctx.clearRect(0,0,36,36); CodaAlphabet.drawSymbol(ctx,18,18,32,type,true);
+  const chips=document.getElementById('pat-chips'); chips.innerHTML='';
+  CodaAlphabet.types.forEach(t=>{ const ch=document.createElement('div'); ch.className='pat-chip'+(t.id===type.id?' match':''); ch.textContent=t.name; chips.appendChild(ch); });
+}
+function updateAlphabetHighlight(activeId) {
+  document.querySelectorAll('.coda-item').forEach((el,i)=>{
+    const m=CodaAlphabet.types[i].id===activeId; el.classList.toggle('active',m);
+    const c=el.querySelector('.coda-symbol-canvas'), ctx=c.getContext('2d');
+    ctx.clearRect(0,0,32,32); CodaAlphabet.drawSymbol(ctx,16,16,28,CodaAlphabet.types[i],m);
+  });
+}
+function updateFormantPanel(result) {
+  if (!result) return;
+  const { vowelClass, formants } = result;
+  const typeStr = vowelClass.type === '?' ? '—' : vowelClass.type + '-coda';
+  const badge = document.getElementById('vowel-big-display');
+  badge.textContent = vowelClass.type === '?' ? '—' : vowelClass.type;
+  badge.innerHTML += '<small>coda-vocal</small>';
+  badge.className = 'vowel-big' + (vowelClass.type==='i'?' type-i':vowelClass.type==='a'?' type-a':'');
+  document.getElementById('f-f1').textContent = vowelClass.f1 ? Math.round(vowelClass.f1) + ' Hz' : '—';
+  document.getElementById('f-f2').textContent = vowelClass.f2 ? Math.round(vowelClass.f2) + ' Hz' : '(mono)';
+  document.getElementById('stat-vowel').textContent = typeStr;
+  const dBadge = document.getElementById('diph-badge');
+  dBadge.textContent = vowelClass.diphthong;
+  dBadge.className = 'diph-badge ' + (vowelClass.diphthong==='ascendente'?'rising':vowelClass.diphthong==='descendente'?'falling':'level');
+}
+
+// ════════════════════════════════════════════════════════
+// STATE & CONTROLS
+// ════════════════════════════════════════════════════════
+let currentVowelType = 'i'; // default matches Type 1+1+3 selected
+let impactCount = 0, connectionCount = 0, aiCount = 0;
+
+function parseCoda(str) {
+  return str.split(',').map(s=>s.trim()).map(item=>{
+    const [ms,kh]=item.split(':'); const im=parseFloat(ms),fk=parseFloat(kh);
+    if(isNaN(im)||isNaN(fk))return null;
+    return {intervalMs:Math.max(50,Math.min(2000,im)),freqKhz:Math.max(1,Math.min(25,fk))};
+  }).filter(Boolean);
+}
+
+// ════════════════════════════════════════════════════════
+// MAIN EMIT FUNCTION
+// ════════════════════════════════════════════════════════
+async function emitCoda() {
+  const btn = document.getElementById('btn-emit');
+  btn.disabled = true; btn.textContent = '⏳ Procesando…';
+  try {
+    const ed = +document.getElementById('sl-ed').value;
+    const rd = +document.getElementById('sl-rd').value;
+    const dist = +document.getElementById('sl-dist').value;
+    const predeform = document.getElementById('cb-predeform').checked;
+    const seq = parseCoda(document.getElementById('coda-input').value);
+    if (seq.length === 0) { alert('Secuencia inválida'); return; }
+
+    // Physics
+    const travelTime = AcousticPhysics.computeTravelTime(ed, rd, dist);
+    const displayDelay = Math.min(2.0, Math.max(0.15, travelTime * 0.8));
+    const cutoff = AcousticPhysics.spectralCutoff(dist);
+    const amp = AcousticPhysics.thorpAttenuation(10, dist);
+    document.getElementById('vc-delay').textContent = (travelTime*1000).toFixed(0)+' ms';
+    document.getElementById('vc-atten').textContent = (20*Math.log10(amp)).toFixed(1)+' dB';
+    positionActors(ed, rd, dist);
+
+    // Build + shape audio
+    let emRaw = AudioEngine.buildCodaBuffer(seq, false);
+    const emShaped = await AudioEngine.applyFormantShaping(emRaw, currentVowelType);
+    const rxBuf = await AudioEngine.applyAcoustics(emShaped, cutoff, amp);
+    const emFinal = predeform ? AudioEngine.buildCodaBuffer(seq.map(s=>({...s,freqKhz:Math.min(25,s.freqKhz*1.3)}))) : emShaped;
+    const rxFinal = predeform ? emShaped : rxBuf;
+
+    // Play
+    AudioEngine.play(emFinal, 0.05);
+    AudioEngine.play(rxFinal, displayDelay);
+
+    // STFT spectrograms
+    const emCanv = document.getElementById('canvas-stft-em');
+    const rxCanv = document.getElementById('canvas-stft-rx');
+    const emPane = document.getElementById('pane-em'), rxPane = document.getElementById('pane-rx');
+    emCanv.width = emPane.clientWidth||300; emCanv.height = emPane.clientHeight||160;
+    rxCanv.width = rxPane.clientWidth||300; rxCanv.height = rxPane.clientHeight||160;
+    const stftEm = SpectrogramEngine.computeSTFT(emFinal, 512, 96, 20);
+    const stftRx = SpectrogramEngine.computeSTFT(rxFinal, 512, 96, 20);
+    SpectrogramEngine.render(emCanv, stftEm, SpectrogramEngine.colorA);
+    SpectrogramEngine.render(rxCanv, stftRx, SpectrogramEngine.colorB);
+
+    // ── FORMANT ANALYSIS (Beguš et al. 2025) ──
+    const formantResult = FormantEngine.analyze(emFinal, seq);
+    if (formantResult) {
+      const { assembled, winSamples, sr, formants, vowelClass } = formantResult;
+      // Assembly spectrogram
+      const asmCanv = document.getElementById('canvas-assembly');
+      const asmPane = document.getElementById('assembly-pane');
+      asmCanv.width = asmPane.clientWidth||250; asmCanv.height = asmPane.clientHeight||160;
+      FormantEngine.renderAssembly(asmCanv, assembled, winSamples, sr);
+      // LPC spectrum
+      const lpcCanv = document.getElementById('canvas-lpc');
+      const lpcPane = document.getElementById('lpc-pane');
+      lpcCanv.width = lpcPane.clientWidth||200; lpcCanv.height = lpcPane.clientHeight||160;
+      FormantEngine.renderLPC(lpcCanv, assembled, sr, formants, currentVowelType);
+      // Classification display
+      updateFormantPanel(formantResult);
+    }
+
+    // Similarity
+    const emCentroid = SpectrogramEngine.spectralCentroid(emFinal);
+    const rxCentroid = SpectrogramEngine.spectralCentroid(rxFinal);
+    const specSim = Math.min(100, Math.round((rxCentroid/emCentroid)*100));
+    const {env:emEnv,peaks:emPeaks} = SpectrogramEngine.extractPeaks(emFinal);
+    const {peaks:rxPeaks} = SpectrogramEngine.extractPeaks(rxFinal);
+    const peakSim = Math.min(100, Math.round((rxPeaks.length/Math.max(emPeaks.length,1))*100));
+    drawSimilarityRing(Math.round(specSim*.6+peakSim*.4));
+    document.getElementById('stat-peaks').textContent = emPeaks.length+' / '+rxPeaks.length;
+    document.getElementById('stat-spec').textContent = specSim+'%';
+    drawPeaksCanvas(emEnv, emPeaks);
+    drawICIRow(seq);
+
+    // Pattern match
+    const detectedType = CodaAlphabet.classify(seq);
+    updateMatchPanel(detectedType);
+    updateAlphabetHighlight(detectedType.id);
+
+    // Impact
+    impactCount++; connectionCount += Math.floor(Math.random()*3+1); aiCount += 2;
+    drawImpactRing(impactCount);
+    document.getElementById('stat-conn').textContent = connectionCount;
+    document.getElementById('stat-ai').textContent = aiCount;
+
+    animatePulse(displayDelay);
+
+    // Auto-switch to formant view after first emission
+    if (formantResult) {
+      document.querySelectorAll('.spec-vtab').forEach(b => b.classList.toggle('active', b.dataset.sview==='formants'));
+      document.querySelectorAll('.spec-view').forEach(v => v.classList.toggle('active', v.id==='sview-formants'));
+    }
+
+  } finally {
+    btn.disabled = false; btn.textContent = '🔊 EMITIR CODA';
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// CONTROL BINDINGS
+// ════════════════════════════════════════════════════════
+document.getElementById('sl-ed').addEventListener('input', function () {
+  document.getElementById('cv-ed').textContent = this.value+' m';
+  positionActors(+this.value, +document.getElementById('sl-rd').value, +document.getElementById('sl-dist').value);
+});
+document.getElementById('sl-rd').addEventListener('input', function () {
+  document.getElementById('cv-rd').textContent = this.value+' m';
+  positionActors(+document.getElementById('sl-ed').value, +this.value, +document.getElementById('sl-dist').value);
+});
+document.getElementById('sl-dist').addEventListener('input', function () {
+  document.getElementById('cv-dist').textContent = this.value+' km';
+  positionActors(+document.getElementById('sl-ed').value, +document.getElementById('sl-rd').value, +this.value);
+});
+document.querySelectorAll('.btn-preset').forEach(btn => {
+  btn.addEventListener('click', () => document.getElementById('coda-input').value = btn.dataset.seq);
+});
+document.getElementById('btn-emit').addEventListener('click', emitCoda);
+
+// Vowel type buttons
+document.querySelectorAll('.vt-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.vt-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentVowelType = btn.dataset.vtype;
+    document.getElementById('cv-vowel').textContent = currentVowelType;
+  });
+});
+
+// Spec view tabs
+document.querySelectorAll('.spec-vtab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.spec-vtab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const v = btn.dataset.sview;
+    document.querySelectorAll('.spec-view').forEach(sv => sv.classList.toggle('active', sv.id === 'sview-' + v));
+    if (v === 'formants') { setTimeout(initFormantPlaceholder, 30); }
+    else { setTimeout(initSTFTPlaceholders, 30); }
+  });
+});
+
+// Nav tabs
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('page-' + tab.dataset.page).classList.add('active');
+    if (tab.dataset.page === 'lab') { setTimeout(handleResize, 50); setTimeout(handleResize, 200); setTimeout(initSTFTPlaceholders, 80); }
+  });
+});
+
+// ════════════════════════════════════════════════════════
+// INIT PLACEHOLDERS
+// ════════════════════════════════════════════════════════
+function initSTFTPlaceholders() {
+  ['canvas-stft-em','canvas-stft-rx'].forEach(id => {
+    const c = document.getElementById(id), pane = c.parentElement;
+    const w = pane.clientWidth||280, h = pane.clientHeight||150;
+    c.width = Math.max(w,200); c.height = Math.max(h,100);
+    const ctx = c.getContext('2d');
+    ctx.fillStyle='#050e1a'; ctx.fillRect(0,0,c.width,c.height);
+    ctx.fillStyle='#1B3A52'; ctx.font='10px Share Tech Mono';
+    ctx.fillText('— Presiona EMITIR CODA para generar espectrograma STFT —', Math.max(4,c.width/2-200), c.height/2);
+  });
+}
+function initFormantPlaceholder() {
+  ['canvas-assembly','canvas-lpc'].forEach(id => {
+    const c = document.getElementById(id), pane = c.parentElement;
+    const w = pane.clientWidth||200, h = pane.clientHeight||150;
+    c.width = Math.max(w,150); c.height = Math.max(h,100);
+    const ctx = c.getContext('2d');
+    ctx.fillStyle='#050e1a'; ctx.fillRect(0,0,c.width,c.height);
+    ctx.fillStyle='#1B3A52'; ctx.font='9px Share Tech Mono';
+    ctx.fillText('Emite una coda para ver ensamblaje temporal-insensible', Math.max(4,c.width/2-170), c.height/2);
+  });
+}
+
+positionActors(900, 900, 5);
+drawSimilarityRing(0); drawImpactRing(0);
+setTimeout(initSTFTPlaceholders, 120);
+setTimeout(initFormantPlaceholder, 120);
+</script>
+</body>
+</html>
