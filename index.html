@@ -1274,6 +1274,7 @@ async function emitCoda() {
 
     // ── FORMANT ANALYSIS (Beguš et al. 2025) ──
     const formantResult = FormantEngine.analyze(emFinal, seq);
+    if (formantResult) window._lastFormantResult = formantResult;
     if (formantResult) {
       const { assembled, winSamples, sr, formants, vowelClass } = formantResult;
       // Assembly spectrogram
@@ -1316,11 +1317,7 @@ async function emitCoda() {
 
     animatePulse(displayDelay);
 
-    // Auto-switch to formant view after first emission
-    if (formantResult) {
-      document.querySelectorAll('.spec-vtab').forEach(b => b.classList.toggle('active', b.dataset.sview==='formants'));
-      document.querySelectorAll('.spec-view').forEach(v => v.classList.toggle('active', v.id==='sview-formants'));
-    }
+    // (user switches to Formantes tab manually)
 
   } finally {
     btn.disabled = false; btn.textContent = '🔊 EMITIR CODA';
@@ -1364,8 +1361,23 @@ document.querySelectorAll('.spec-vtab').forEach(btn => {
     btn.classList.add('active');
     const v = btn.dataset.sview;
     document.querySelectorAll('.spec-view').forEach(sv => sv.classList.toggle('active', sv.id === 'sview-' + v));
-    if (v === 'formants') { setTimeout(initFormantPlaceholder, 30); }
-    else { setTimeout(initSTFTPlaceholders, 30); }
+    if (v === 'formants') {
+      // Re-render formant canvases now that the panel is visible and has real dimensions
+      setTimeout(() => {
+        const asmC = document.getElementById('canvas-assembly');
+        const asmP = document.getElementById('assembly-pane');
+        const lpcC = document.getElementById('canvas-lpc');
+        const lpcP = document.getElementById('lpc-pane');
+        if (asmC && asmP && asmP.clientWidth > 10) { asmC.width = asmP.clientWidth; asmC.height = asmP.clientHeight || 160; }
+        if (lpcC && lpcP && lpcP.clientWidth > 10) { lpcC.width = lpcP.clientWidth; lpcC.height = lpcP.clientHeight || 160; }
+        // Re-run last formant render if we have cached data
+        if (window._lastFormantResult) {
+          const fr = window._lastFormantResult;
+          if (asmC && asmC.width > 10) FormantEngine.renderAssembly(asmC, fr.assembled, fr.winSamples, fr.sr);
+          if (lpcC && lpcC.width > 10) FormantEngine.renderLPC(lpcC, fr.assembled, fr.sr, fr.formants, currentVowelType);
+        } else { initFormantPlaceholder(); }
+      }, 60);
+    } else { setTimeout(initSTFTPlaceholders, 30); }
   });
 });
 
@@ -1846,19 +1858,25 @@ async function analyseMp3() {
 
     // ── Formant analysis on click-assembled buffer ──
     const formantResult = FormantEngine.analyze(clickBufA, seqA);
+    if (formantResult) window._lastFormantResult = formantResult;
     if (formantResult) {
       const asmCanv = document.getElementById('canvas-assembly');
       const lpcCanv = document.getElementById('canvas-lpc');
       const asmPane = document.getElementById('assembly-pane');
       const lpcPane = document.getElementById('lpc-pane');
-      if (asmCanv && asmPane) {
-        asmCanv.width = asmPane.clientWidth || 250;
-        asmCanv.height = asmPane.clientHeight || 160;
+      // Use fixed pixel buffer — CSS scales it; works even when panel is hidden
+      if (asmCanv) {
+        asmCanv.width  = asmPane ? Math.max(asmPane.clientWidth,  10) : 520;
+        asmCanv.height = asmPane ? Math.max(asmPane.clientHeight, 10) : 160;
+        if (asmCanv.width < 50) asmCanv.width = 520;   // was hidden → use fixed
+        if (asmCanv.height < 50) asmCanv.height = 160;
         FormantEngine.renderAssembly(asmCanv, formantResult.assembled, formantResult.winSamples, formantResult.sr);
       }
-      if (lpcCanv && lpcPane) {
-        lpcCanv.width = lpcPane.clientWidth || 200;
-        lpcCanv.height = lpcPane.clientHeight || 160;
+      if (lpcCanv) {
+        lpcCanv.width  = lpcPane ? Math.max(lpcPane.clientWidth,  10) : 340;
+        lpcCanv.height = lpcPane ? Math.max(lpcPane.clientHeight, 10) : 160;
+        if (lpcCanv.width < 50) lpcCanv.width = 340;
+        if (lpcCanv.height < 50) lpcCanv.height = 160;
         FormantEngine.renderLPC(lpcCanv, formantResult.assembled, formantResult.sr, formantResult.formants, currentVowelType);
       }
       updateFormantPanel(formantResult);
@@ -1891,12 +1909,6 @@ async function analyseMp3() {
     // Mark as real source
     const sb = document.getElementById('source-badge');
     sb.className = 'source-badge real'; sb.textContent = '● GRABACIÓN REAL';
-
-    // Switch to formant view (only if formant panel exists)
-    if (document.getElementById('sview-formants')) {
-      document.querySelectorAll('.spec-vtab').forEach(b => b.classList.toggle('active', b.dataset.sview==='formants'));
-      document.querySelectorAll('.spec-view').forEach(v => v.classList.toggle('active', v.id==='sview-formants'));
-    }
 
     // Play Señal A audio
     const ac = new (window.AudioContext || window.webkitAudioContext)();
